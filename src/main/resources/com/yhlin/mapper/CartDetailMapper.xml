@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.yhlin.mapper.CartDetailMapper">
+
+    <resultMap id="BaseResultMap" type="CartDetail">
+        <id property="id" column="id"/>
+        <result property="quantity" column="quantity"/>
+        <association property="cart" select="com.yhlin.mapper.CartMapper.selectByPrimaryKeyWithNoDetail"
+                     column="cart_id"/>
+        <association property="listing" select="com.yhlin.mapper.ListingMapper.selectByPrimaryKey" column="listing_id"/>
+    </resultMap>
+
+
+    <select id="selectByCartId" resultType="CartDetail" resultMap="BaseResultMap">
+        select id, cart_id, listing_id, quantity
+        from cart_detail
+        where cart_id = #{cartId}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        insert into cart_detail (cart_id, listing_id, quantity)
+        values (#{cart.id}, #{listing.id}, #{quantity})
+    </insert>
+
+    <update id="updateQuantity" parameterType="CartDetail">
+        update cart_detail
+        set quantity = #{quantity}
+        where id = #{id}
+    </update>
+
+    <delete id="delete" parameterType="CartDetail">
+        delete
+        from cart_detail
+        where cart_id = #{cart.id}
+          and listing_id = #{listing.id}
+    </delete>
+</mapper>

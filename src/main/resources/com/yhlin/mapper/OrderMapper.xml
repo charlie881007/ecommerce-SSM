@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yhlin.mapper.OrderMapper">
+    <resultMap id="BaseResultMap" type="com.yhlin.bean.Order">
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="status" jdbcType="VARCHAR" property="status"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="amount" jdbcType="INTEGER" property="amount"/>
+        <association property="user" select="com.yhlin.mapper.UserMapper.selectByPrimaryKeyWithBasicInfo"
+                     column="user_id"/>
+        <association property="cart" select="com.yhlin.mapper.CartMapper.selectByPrimaryKey" column="cart_id"/>
+    </resultMap>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+        delete
+        from order
+        where id = #{id,jdbcType=INTEGER}
+    </delete>
+    <insert id="insert" parameterType="com.yhlin.bean.Order" useGeneratedKeys="true" keyProperty="id">
+        insert into `order` (user_id, cart_id,
+                             status, create_time, amount)
+        values (#{user.id,jdbcType=INTEGER}, #{cart.id,jdbcType=INTEGER},
+                #{status,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{amount,jdbcType=INTEGER})
+    </insert>
+    <update id="update" parameterType="com.yhlin.bean.Order">
+        update `order`
+        set user_id     = #{user.id,jdbcType=INTEGER},
+            cart_id     = #{cart.id},
+            status      = #{status,jdbcType=VARCHAR},
+            create_time = #{createTime,jdbcType=TIMESTAMP},
+            amount      = #{amount,jdbcType=INTEGER}
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+    <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        select id, user_id, cart_id, status, create_time, amount
+        from `order`
+        where id = #{id,jdbcType=INTEGER}
+    </select>
+    <select id="selectAll" resultMap="BaseResultMap">
+        select id, user_id, cart_id, status, create_time, amount
+        from `order`
+    </select>
+    <select id="selectByUser" resultMap="BaseResultMap" parameterType="User">
+        select id, user_id, cart_id, status, create_time, amount
+        from `order`
+        where user_id = #{user.id}
+    </select>
+
+</mapper>

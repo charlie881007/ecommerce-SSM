@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yhlin.mapper.ItemMapper">
+    <resultMap id="BaseResultMap" type="com.yhlin.bean.Item">
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="item_sn" jdbcType="VARCHAR" property="itemSn"/>
+        <result column="name" jdbcType="VARCHAR" property="name"/>
+        <result column="description" jdbcType="VARCHAR" property="description"/>
+        <result column="volume" jdbcType="INTEGER" property="volume"/>
+    </resultMap>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+        delete
+        from item
+        where id = #{id,jdbcType=INTEGER}
+    </delete>
+    <insert id="insert" parameterType="com.yhlin.bean.Item">
+        insert into item (id, item_sn, name,
+                          description, volume)
+        values (#{id,jdbcType=INTEGER}, #{itemSn,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR},
+                #{description,jdbcType=VARCHAR}, #{volume,jdbcType=INTEGER})
+    </insert>
+    <update id="updateByPrimaryKey" parameterType="com.yhlin.bean.Item">
+        update item
+        set item_sn     = #{itemSn,jdbcType=VARCHAR},
+            name        = #{name,jdbcType=VARCHAR},
+            description = #{description,jdbcType=VARCHAR},
+            volume      = #{volume,jdbcType=INTEGER}
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+    <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        select id, item_sn, name, description, volume
+        from item
+        where id = #{id,jdbcType=INTEGER}
+    </select>
+    <select id="selectAll" resultMap="BaseResultMap">
+        select id, item_sn, name, description, volume
+        from item
+    </select>
+</mapper>

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yhlin.mapper.ListingMapper">
+    <resultMap id="BaseResultMap" type="com.yhlin.bean.Listing">
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="original_price" jdbcType="INTEGER" property="originalPrice"/>
+        <result column="discount_price" jdbcType="INTEGER" property="discountPrice"/>
+        <result column="volume" jdbcType="INTEGER" property="volume"/>
+        <result column="status" jdbcType="VARCHAR" property="status"/>
+        <association property="item" select="com.yhlin.mapper.ItemMapper.selectByPrimaryKey" column="item_id"/>
+    </resultMap>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+        delete
+        from listing
+        where id = #{id,jdbcType=INTEGER}
+    </delete>
+    <insert id="insert" parameterType="com.yhlin.bean.Listing">
+        insert into listing (id, item_id, original_price,
+                             discount_price, volume, status)
+        values (#{id,jdbcType=INTEGER}, #{itemId,jdbcType=INTEGER}, #{originalPrice,jdbcType=INTEGER},
+                #{discountPrice,jdbcType=INTEGER}, #{volume,jdbcType=INTEGER}, #{status,jdbcType=VARCHAR})
+    </insert>
+    <update id="update" parameterType="com.yhlin.bean.Listing">
+        update listing
+        set item_id        = #{id,jdbcType=INTEGER},
+            original_price = #{originalPrice,jdbcType=INTEGER},
+            discount_price = #{discountPrice,jdbcType=INTEGER},
+            volume         = #{volume,jdbcType=INTEGER},
+            status         = #{status,jdbcType=VARCHAR}
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+    <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        select id, item_id, original_price, discount_price, volume, status
+        from listing
+        where id = #{id,jdbcType=INTEGER}
+    </select>
+    <select id="selectAll" resultMap="BaseResultMap">
+        select id, item_id, original_price, discount_price, volume, status
+        from listing
+    </select>
+    <select id="selectByStatus" resultMap="BaseResultMap">
+        select id, item_id, original_price, discount_price, volume, status
+        from listing
+        where status = #{status}
+    </select>
+</mapper>

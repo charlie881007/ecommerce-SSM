@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/mvc https://www.springframework.org/schema/mvc/spring-mvc.xsd">
+
+    <context:component-scan base-package="com.yhlin.controller"/>
+
+    <mvc:interceptors>
+        <mvc:interceptor>
+            <mvc:mapping path="/login"/>
+            <mvc:mapping path="/register"/>
+            <bean class="com.yhlin.interceptor.LoginAndRegisterPageInterceptor"/>
+        </mvc:interceptor>
+
+        <mvc:interceptor>
+            <mvc:mapping path="/cart/**"/>
+            <mvc:exclude-mapping path="/cart"/>
+            <mvc:exclude-mapping path="/cart/checkout"/>
+            <bean class="com.yhlin.interceptor.LoginInterceptorForAjax"/>
+        </mvc:interceptor>
+
+        <mvc:interceptor>
+            <mvc:mapping path="/cart"/>
+            <mvc:mapping path="/cart/removeClosed"/>
+            <mvc:mapping path="/cart/checkout"/>
+            <mvc:mapping path="/orders/**"/>
+            <bean class="com.yhlin.interceptor.LoginInterceptor"/>
+        </mvc:interceptor>
+
+
+        <mvc:interceptor>
+            <mvc:mapping path="/cart"/>
+            <mvc:mapping path="/cart/add"/>
+            <bean class="com.yhlin.interceptor.CartCreateInterceptor"/>
+        </mvc:interceptor>
+
+
+        <mvc:interceptor>
+            <mvc:mapping path="/cart"/>
+            <mvc:mapping path="/cart/removeClosed"/>
+            <mvc:mapping path="/cart/checkout"/>
+            <bean class="com.yhlin.interceptor.UpdateCartInterceptor"/>
+        </mvc:interceptor>
+    </mvc:interceptors>
+
+    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="prefix" value="/WEB-INF/jsp/"/>
+        <property name="suffix" value=".jsp"/>
+    </bean>
+
+    <mvc:annotation-driven/>
+    <mvc:resources location="/css/" mapping="/css/**"/>
+    <mvc:resources location="/js/" mapping="/js/**"/>
+    <mvc:resources location="/image/" mapping="/image/**"/>
+
+</beans>
