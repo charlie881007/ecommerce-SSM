@@ -11,12 +11,24 @@ function cancelOrder(orderId) {
         async: false,
         url: contextPath + "/orders/" + orderId + "/cancel",
         data: {orderId: orderId},
-        success: function () {
-            window.location.replace(contextPath + "/orders");
+        success: function (data) {
+            if (data.success === true) {
+                // 取消成功
+                alert("取消成功");
+                window.location.replace(document.URL)
+            } else {
+                alert("取消失敗，請洽詢客服")
+            }
         },
-        error: function () {
-            alert("取消失敗");
-            window.location.replace(contextPath + "/orders");
+        error: function (xhr, textStatus) {
+            if (xhr.status === 400) {
+                alert("參數錯誤")
+            } else if (xhr.status === 401) {
+                // 尚未登入
+                window.location.replace(contextPath + "/login?redirect=" + window.location.href);
+            } else if (xhr.status === 500) {
+                alert("伺服器錯誤");
+            }
         }
     });
 }

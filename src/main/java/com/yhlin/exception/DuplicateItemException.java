@@ -1,6 +1,6 @@
 package com.yhlin.exception;
 
-public class DuplicateItemException extends CartException {
+public class DuplicateItemException extends Exception {
     public DuplicateItemException() {
     }
 

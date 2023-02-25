@@ -9,12 +9,23 @@ function removeClosedListings() {
     $.ajax({
         type: "POST",
         url: contextPath + "/cart/removeClosed",
-        success: function () {
-            window.location.replace(contextPath + "/cart");
+        success: function (data, textStatus) {
+            if (data.success === true) {
+                // 移除成功，刷新頁面
+                window.location.replace(document.URL)
+            } else if (data.success === false) {
+                alert("伺服器發生錯誤")
+            }
         },
-        error: function () {
-            alert("刪除失敗");
-            window.location.replace(contextPath + "/cart");
+        error: function (xhr, textStatus) {
+            if (xhr.status === 400) {
+                alert("參數錯誤")
+            } else if (xhr.status === 401) {
+                // 尚未登入
+                window.location.replace(contextPath + "/login?redirect=" + window.location.href);
+            } else if (xhr.status === 500) {
+                alert("伺服器錯誤");
+            }
         }
     });
 }
@@ -31,21 +42,27 @@ function removeItem(listingId) {
     $.ajax({
         type: "POST",
         url: contextPath + "/cart/remove",
+        dataType: "JSON",
         data: {
             listingId: listingId,
         },
-        dataType: "json",
         success: function (data, textStatus) {
-            if (data.msg === "redirect") {
-                // 尚未登入的話，後端會傳一個status code 200的json，其中msg是redirect，此時手動執行跳轉
-                window.location.replace(contextPath + data.url);
-            } else {
-                // 刷新購物車頁面
+            // 修改成功，刷新頁面
+            if (data.success === true) {
                 window.location.replace(document.URL);
+            } else {
+                alert(data.msg);
             }
         },
         error: function (xhr, textStatus) {
-            alert(JSON.parse(xhr.responseText).msg);
+            if (xhr.status === 400) {
+                alert("參數錯誤")
+            } else if (xhr.status === 401) {
+                // 尚未登入
+                window.location.replace(contextPath + "/login?redirect=" + window.location.href);
+            } else if (xhr.status === 500) {
+                alert("伺服器錯誤");
+            }
         }
     });
 }
@@ -69,12 +86,19 @@ function notifyServer(listingId, quantity) {
         async: false,
         url: contextPath + "/cart/revise",
         data: {listingId: listingId, quantity: quantity},
-        dataType: "json",
-        success: function () {
-            isSuccess = true
+        success: function (data, textStatus) {
+            // 新增成功
+            return true;
         },
-        error: function () {
-            isSuccess = false
+        error: function (xhr, textStatus) {
+            if (xhr.status === 400) {
+                alert("參數錯誤")
+            } else if (xhr.status === 401) {
+                // 尚未登入
+                window.location.replace(contextPath + "/login?redirect=" + window.location.href);
+            } else if (xhr.status === 500) {
+                alert("伺服器錯誤");
+            }
         }
     });
     return isSuccess;
@@ -86,7 +110,6 @@ $(function () {
         input.addEventListener('focus', (event) => {
             input.oldValue = input.value;
         });
-
 
         input.addEventListener('change', (e) => {
             const row = input.parentNode.parentNode;

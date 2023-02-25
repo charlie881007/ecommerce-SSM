@@ -95,15 +95,20 @@ $(function () {
             type: "GET",
             url: contextPath + "/checkRegistered",
             data: {email: email},
-            success: function () {
-                emailCheck.innerText = "此信箱可以使用";
-                emailError.innerText = "";
-                emailUsed = false;
+            dataType: "JSON",
+            success: function (data) {
+                if (data.canUse === true) {
+                    emailCheck.innerText = "此信箱可以使用";
+                    emailError.innerText = "";
+                    emailUsed = false;
+                } else {
+                    emailError.innerText = "此信箱已經註冊過羅";
+                    emailCheck.innerText = "";
+                    emailUsed = true;
+                }
             },
             error: function () {
-                emailError.innerText = "此信箱已經註冊過羅";
-                emailCheck.innerText = "";
-                emailUsed = true;
+
             }
         });
     });

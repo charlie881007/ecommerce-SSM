@@ -1,20 +1,18 @@
 <%--
   Created by IntelliJ IDEA.
   User: Yu-Hsin Lin
-  Date: 2023/2/20
-  Time: 上午 03:38
+  Date: 2023/2/25
+  Time: 上午 12:58
   To change this template use File | Settings | File Templates.
 --%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-
 <html>
 <head>
-    <title>錯誤</title>
+    <title>訂單</title>
 </head>
 <body>
 <jsp:include page="header.jsp"/>
-
-<h1>抱歉，網站發生問題，我們在努力搶修中</h1>
+<h1>抱歉，找不到這筆訂單</h1>
 
 </body>
 </html>

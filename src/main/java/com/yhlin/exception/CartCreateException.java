@@ -1,6 +1,6 @@
 package com.yhlin.exception;
 
-public class CartCreateException extends CartException {
+public class CartCreateException extends Exception {
     public CartCreateException() {
     }
 

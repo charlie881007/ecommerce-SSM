@@ -10,11 +10,11 @@ public class LoginInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         HttpSession session = request.getSession();
         if (session.getAttribute("user") == null) {
-            response.sendRedirect(request.getContextPath() + "/login");
+            String referer = request.getHeader("Referer");
+            response.sendRedirect(request.getContextPath() + "/login?redirect=" + referer);
 
             return false;
         }
-
         return true;
     }
 }

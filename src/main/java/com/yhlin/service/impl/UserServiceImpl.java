@@ -84,7 +84,7 @@ public class UserServiceImpl implements com.yhlin.service.UserService {
     }
 
     @Override
-    public void addItemToCart(User user, Listing targetItem, int quantity) throws CartException {
+    public void addItemToCart(User user, Listing targetItem, int quantity) throws ClosedListingException, DuplicateItemException, InsufficientItemException, DatabaseException {
         Cart cart = user.getCart();
 
         // 檢查商品是否已經下架
@@ -111,15 +111,15 @@ public class UserServiceImpl implements com.yhlin.service.UserService {
         // 將更新資訊寫入資料庫
         int res = cartDetailMapper.insert(cartDetail);
         if (res != 1) {
-            throw new AddItemException();
+            throw new DatabaseException();
         }
     }
 
     @Override
-    public void removeFromCart(User user, Listing targetItem) throws NoSuchItemException, ServerError {
+    public void removeFromCart(User user, Listing targetItem) throws NotInCartException, DatabaseException {
         boolean isInCart = user.getCart().checkItemInCart(targetItem);
         if (!isInCart) {
-            throw new NoSuchItemException();
+            throw new NotInCartException();
         }
 
         // 將商品移出購物車
@@ -128,12 +128,12 @@ public class UserServiceImpl implements com.yhlin.service.UserService {
         // 寫入資料庫
         int res = cartDetailMapper.delete(cartDetail);
         if (res != 1) {
-            throw new ServerError();
+            throw new DatabaseException();
         }
     }
 
     @Override
-    public void removeClosedListingsFromCart(User user) throws CartRemoveException {
+    public void removeClosedListingsFromCart(User user) throws DatabaseException {
         List<CartDetail> cartDetailList = user.getCart().getCartDetails();
         for (int i = cartDetailList.size() - 1; i >= 0; i--) {
             CartDetail cartDetail = cartDetailList.get(i);
@@ -142,28 +142,36 @@ public class UserServiceImpl implements com.yhlin.service.UserService {
 
                 int res = cartDetailMapper.delete(cartDetail);
                 if (res != 1) {
-                    throw new CartRemoveException();
+                    throw new DatabaseException();
                 }
             }
         }
     }
 
     @Override
-    public void reviseCart(User user, Integer listingId, Integer quantity) throws CartException {
+    public void reviseCart(User user, Integer listingId, Integer quantity) throws NotInCartException, DatabaseException {
         Cart cart = user.getCart();
 
         int res = 0;
+        boolean inCart = false;
+
         for (CartDetail cartDetail : cart.getCartDetails()) {
             Listing item = cartDetail.getListing();
-
             if (item.getId().equals(listingId)) {
                 cartDetail.setQuantity(quantity);
                 res = cartDetailMapper.updateQuantity(cartDetail);
+
+                if (res != 1) {
+                    throw new DatabaseException();
+                }
+
+                inCart = true;
                 break;
             }
         }
-        if (res != 1) {
-            throw new CartException();
+
+        if (!inCart) {
+            throw new NotInCartException();
         }
     }
 
@@ -240,37 +248,48 @@ public class UserServiceImpl implements com.yhlin.service.UserService {
         return true;
     }
 
+    @Override
+    public Order viewOrder(User user, Integer orderId) throws NoOrderFound {
+        Order order = user.getOrder(orderId);
+
+        if (order == null){
+            throw new NoOrderFound();
+        }
+
+        return order;
+    }
+
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public void cancelOrder(User user, Integer orderId) throws DatabaseException {
-        List<Order> orders = user.getOrders();
-        int res = 0;
-        for (Order order : orders) {
-            if (order.getId().equals(orderId)) {
-                if (order.getStatus() == OrderStatus.CREATED || order.getStatus() == OrderStatus.PREPARING) {
-                    order.setStatus(OrderStatus.CANCELED);
-                    res = orderMapper.update(order);
+    public void cancelOrder(User user, Integer orderId) throws NoOrderFound, UncancellableException, DatabaseException {
+        Order order = user.getOrder(orderId);
+        if (order == null) {
+            throw new NoOrderFound();
+        }
 
-                    if (res != 1) {
-                        throw new DatabaseException();
-                    }
+        if (order.getStatus() != OrderStatus.CREATED && order.getStatus() != OrderStatus.PREPARING) {
+            throw new UncancellableException();
+        }
 
-                    // 回充庫存
-                    List<CartDetail> cartDetails = order.getCart().getCartDetails();
-                    for (CartDetail cartDetail : cartDetails) {
-                        Listing item = listingService.getById(cartDetail.getListing().getId());
-                        int volumeBefore = item.getVolume();
-                        int volumeAfter = volumeBefore + cartDetail.getQuantity();
-                        item.setVolume(volumeAfter);
-                        res = listingMapper.update(item);
+        int res;
+        order.setStatus(OrderStatus.CANCELED);
+        res = orderMapper.update(order);
 
-                        if (res != 1) {
-                            throw new DatabaseException();
-                        }
-                    }
+        if (res != 1) {
+            throw new DatabaseException();
+        }
 
-                    break;
-                }
+        // 回充庫存
+        List<CartDetail> cartDetails = order.getCart().getCartDetails();
+        for (CartDetail cartDetail : cartDetails) {
+            Listing item = listingService.getById(cartDetail.getListing().getId());
+            int volumeBefore = item.getVolume();
+            int volumeAfter = volumeBefore + cartDetail.getQuantity();
+            item.setVolume(volumeAfter);
+            res = listingMapper.update(item);
+
+            if (res != 1) {
+                throw new DatabaseException();
             }
         }
     }

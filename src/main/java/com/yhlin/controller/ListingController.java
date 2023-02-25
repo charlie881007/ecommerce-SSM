@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.util.List;
@@ -27,7 +28,7 @@ public class ListingController {
     private ListingService listingService;
 
     @GetMapping({"listings", "/"})
-    public ModelAndView getListings(Integer page, Integer pageSize, ModelAndView modelAndView) {
+    public ModelAndView getListings(@RequestParam(required = false) Integer page, @RequestParam(required = false) Integer pageSize, ModelAndView modelAndView) {
         int pageParam = 1;
         int pageSizeParam = defaultPageSize;
 

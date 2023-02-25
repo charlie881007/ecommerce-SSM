@@ -2,6 +2,8 @@ package com.yhlin.controller;
 
 import com.yhlin.bean.*;
 import com.yhlin.exception.*;
+import com.yhlin.response.EmailCheckResponse;
+import com.yhlin.response.OperationResponse;
 import com.yhlin.service.ListingService;
 import com.yhlin.service.UserService;
 import jakarta.mail.MessagingException;
@@ -30,14 +32,16 @@ public class UserController {
         return "login";
     }
 
-    @GetMapping("/checkRegistered")
-    public void checkRegistered(String email, HttpServletResponse response) {
+    // AJAX請求，回傳{canUse:true|false}
+    @GetMapping(value = "/checkRegistered", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody()
+    public EmailCheckResponse checkRegistered(@RequestParam("email") String email, HttpServletResponse response) {
         boolean isUsed = userService.checkEmailUsed(email);
-        if (isUsed) {
-            response.setStatus(400);
-        } else {
-            response.setStatus(200);
-        }
+
+        EmailCheckResponse emailCheckResponse = new EmailCheckResponse();
+        emailCheckResponse.setCanUse(!isUsed);
+
+        return emailCheckResponse;
     }
 
     @PostMapping("/login")
@@ -124,88 +128,124 @@ public class UserController {
             session.setAttribute("email", email);
             response.setStatus(200);
         } catch (MessagingException e) {
-            response.setStatus(400);
+            response.setStatus(500);
         }
     }
 
-    // ajax請求
+    // ajax請求，回傳{success: true|false, msg:""}
     @PostMapping(value = "/cart/add", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public ResponseModel addItemToCart(@SessionAttribute("user") User user, @RequestParam Integer listingId, @RequestParam Integer quantity, HttpServletResponse response) {
+    public OperationResponse addItemToCart(@SessionAttribute("user") User user, @RequestParam Integer listingId, @RequestParam Integer quantity, HttpServletResponse response) {
+        OperationResponse operationResponse = new OperationResponse();
+        boolean isSuccess = false;
+        String msg = "";
+
         // 取得商品
         Listing listing = listingService.getById(listingId);
-        ResponseModel responseModel = new ResponseModel();
-
-        // 新增到購物車
-        try {
-            userService.addItemToCart(user, listing, quantity);
-            responseModel.setMsg("【成功】新增成功");
-
-
-        } catch (DuplicateItemException e) {
-            responseModel.setMsg("【失敗】此商品已經在購物車裡了");
+        if (listing == null) {
+            msg = "no item found";
             response.setStatus(400);
-        } catch (ClosedListingException e) {
-            responseModel.setMsg("【失敗】此商品已經下架了");
-            response.setStatus(400);
-        } catch (InsufficientItemException e) {
-            responseModel.setMsg("【失敗】商品數量不足");
-            response.setStatus(400);
-        } catch (CartException e) {
-            responseModel.setMsg("【失敗】伺服器錯誤");
-            response.setStatus(500);
+        } else {
+            // 新增到購物車
+            try {
+                userService.addItemToCart(user, listing, quantity);
+                isSuccess = true;
+
+            } catch (DuplicateItemException e) {
+                msg = "duplicate item";
+            } catch (ClosedListingException e) {
+                msg = "closed item";
+            } catch (InsufficientItemException e) {
+                msg = "insufficient item";
+            } catch (DatabaseException e) {
+                response.setStatus(500);
+                msg = "server error";
+            }
         }
 
-        return responseModel;
+        operationResponse.setSuccess(isSuccess);
+        operationResponse.setMsg(msg);
+
+        return operationResponse;
     }
 
-    // ajax請求
+    // ajax請求，回傳{success: true|false, msg:""}
     @PostMapping(value = "/cart/remove", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public ResponseModel removeFromCart(@SessionAttribute("user") User user, Integer listingId, HttpServletResponse response) {
+    public OperationResponse removeFromCart(@SessionAttribute("user") User user, Integer listingId, HttpServletResponse response) {
+        OperationResponse operationResponse = new OperationResponse();
+        boolean isSuccess = false;
+        String msg = "";
+
         // 取得商品
         Listing listing = listingService.getById(listingId);
-        ResponseModel responseModel = new ResponseModel();
-
-        // 新增到購物車
-        try {
-            userService.removeFromCart(user, listing);
-            responseModel.setMsg("【成功】移除成功");
-
-
-        } catch (CartException e) {
-            responseModel.setMsg("【失敗】購物車裡沒有此商品");
+        if (listing == null) {
+            msg = "no item found";
             response.setStatus(400);
-        } catch (ServerError e) {
-            responseModel.setMsg("伺服器錯誤");
-            response.setStatus(500);
+        } else {
+            // 從購物車移除
+            try {
+                userService.removeFromCart(user, listing);
+                isSuccess = true;
+            } catch (NotInCartException e) {
+                msg = "not in cart";
+            } catch (DatabaseException e) {
+                response.setStatus(500);
+                msg = "server error";
+            }
         }
 
-        return responseModel;
+        operationResponse.setSuccess(isSuccess);
+        operationResponse.setMsg(msg);
+
+        return operationResponse;
     }
 
+    // ajax請求，回傳{success: true|false, msg:""}
     @PostMapping(value = "/cart/removeClosed")
-    public void removeClosedListingFromCart(@SessionAttribute("user") User user, HttpServletResponse response) {
+    @ResponseBody
+    public OperationResponse removeClosedListingFromCart(@SessionAttribute("user") User user, HttpServletResponse response) {
+        OperationResponse operationResponse = new OperationResponse();
+        boolean isSuccess = false;
+        String msg = "";
+
         try {
             userService.removeClosedListingsFromCart(user);
-        } catch (CartRemoveException e) {
+            isSuccess = true;
+        } catch (DatabaseException e) {
             response.setStatus(500);
+            msg = "server error";
         }
+
+        operationResponse.setSuccess(isSuccess);
+        operationResponse.setMsg(msg);
+
+        return operationResponse;
     }
 
+    // ajax請求，回傳{success: true|false, msg:""}
     @PostMapping(value = "/cart/revise", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public ResponseModel reviseCart(@SessionAttribute("user") User user, @RequestParam Integer listingId, @RequestParam Integer quantity, HttpServletResponse response) {
-        ResponseModel responseModel = new ResponseModel();
+    public OperationResponse reviseCart(@SessionAttribute("user") User user, @RequestParam Integer listingId, @RequestParam Integer quantity, HttpServletResponse response) {
+        OperationResponse operationResponse = new OperationResponse();
+        boolean isSuccess = false;
+        String msg = "";
+
+        // 從購物車修改
         try {
             userService.reviseCart(user, listingId, quantity);
-            responseModel.setMsg("修改成功");
-        } catch (CartException e) {
-            responseModel.setMsg("修改失敗");
+            isSuccess = true;
+        } catch (NotInCartException e) {
+            msg = "not in cart";
+        } catch (DatabaseException e) {
             response.setStatus(500);
+            msg = "server error";
         }
 
-        return responseModel;
+        operationResponse.setSuccess(isSuccess);
+        operationResponse.setMsg(msg);
+
+        return operationResponse;
     }
 
     @GetMapping(value = "/cart")
@@ -215,29 +255,22 @@ public class UserController {
 
     @PostMapping("/cart/checkout")
     public ModelAndView checkout(@SessionAttribute("user") User user, ModelAndView modelAndView) {
-        modelAndView.setViewName("redirect:/");
+        modelAndView.setViewName("cart");
+        String msg = "";
         try {
             userService.checkout(user);
+            modelAndView.setViewName("redirect:/");
         } catch (EmptyCartException e) {
-            String msg = "抱歉，您的購物車是空的";
-            modelAndView.addObject("msg", msg);
-            modelAndView.setViewName("cart");
-
+            msg = "抱歉，您的購物車是空的";
         } catch (ClosedListingException e) {
-            String msg = "抱歉，購物車內含有已下架的產品";
-            modelAndView.addObject("msg", msg);
-            modelAndView.setViewName("cart");
-
+            msg = "抱歉，購物車內含有已下架的產品";
         } catch (InsufficientItemException e) {
-            String msg = "抱歉，庫存數量不夠";
-            modelAndView.addObject("msg", msg);
-            modelAndView.setViewName("cart");
+            msg = "抱歉，庫存數量不夠";
         } catch (DatabaseException e) {
-            String msg = "抱歉，伺服器遭遇問題";
-            modelAndView.addObject("msg", msg);
-            modelAndView.setViewName("cart");
+            msg = "抱歉，伺服器遭遇問題";
         }
 
+        modelAndView.addObject("msg", msg);
         return modelAndView;
     }
 
@@ -250,27 +283,40 @@ public class UserController {
     public ModelAndView viewOrder(@SessionAttribute("user") User user, @PathVariable("orderId") Integer orderId) {
         ModelAndView modelAndView = new ModelAndView();
 
-        Order order = user.getOrder(orderId);
-
-        String viewName;
-        if (order != null) {
-            viewName = "order";
+        try {
+            Order order = userService.viewOrder(user, orderId);
             modelAndView.addObject("order", order);
-        } else {
-            viewName = "error";
+            modelAndView.setViewName("order");
+        } catch (NoOrderFound e) {
+            modelAndView.setViewName("orderNotFound");
         }
 
-        modelAndView.setViewName(viewName);
         return modelAndView;
     }
 
-    @PostMapping("/orders/{orderId}/cancel")
-    public void cancelOrder(@SessionAttribute("user") User user, @PathVariable("orderId") Integer orderId, HttpServletResponse response) {
+    // ajax請求，回傳{success: true|false, msg:""}
+    @ResponseBody
+    @PostMapping(value = "/orders/{orderId}/cancel", produces = MediaType.APPLICATION_JSON_VALUE)
+    public OperationResponse cancelOrder(@SessionAttribute("user") User user, @PathVariable("orderId") Integer orderId, HttpServletResponse response) {
+        OperationResponse operationResponse = new OperationResponse();
+        boolean isSuccess = false;
+        String msg = "";
+
         try {
             userService.cancelOrder(user, orderId);
+            isSuccess = true;
+        } catch (NoOrderFound e) {
+            msg = "no order found";
+            response.setStatus(400);
+        } catch (UncancellableException e) {
+            msg = "too late to cancel";
         } catch (DatabaseException e) {
+            msg = "server error";
             response.setStatus(500);
         }
-        response.setStatus(200);
+
+        operationResponse.setSuccess(isSuccess);
+        operationResponse.setMsg(msg);
+        return operationResponse;
     }
 }

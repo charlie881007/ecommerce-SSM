@@ -6,6 +6,8 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/mvc https://www.springframework.org/schema/mvc/spring-mvc.xsd">
 
     <context:component-scan base-package="com.yhlin.controller"/>
+    <context:component-scan base-package="com.yhlin.errorHandler"/>
+
 
     <mvc:interceptors>
         <mvc:interceptor>
@@ -15,15 +17,15 @@
         </mvc:interceptor>
 
         <mvc:interceptor>
-            <mvc:mapping path="/cart/**"/>
-            <mvc:exclude-mapping path="/cart"/>
-            <mvc:exclude-mapping path="/cart/checkout"/>
+            <mvc:mapping path="/cart/add"/>
+            <mvc:mapping path="/cart/revise"/>
+            <mvc:mapping path="/cart/remove"/>
+            <mvc:mapping path="/cart/removeClosed"/>
             <bean class="com.yhlin.interceptor.LoginInterceptorForAjax"/>
         </mvc:interceptor>
 
         <mvc:interceptor>
             <mvc:mapping path="/cart"/>
-            <mvc:mapping path="/cart/removeClosed"/>
             <mvc:mapping path="/cart/checkout"/>
             <mvc:mapping path="/orders/**"/>
             <bean class="com.yhlin.interceptor.LoginInterceptor"/>

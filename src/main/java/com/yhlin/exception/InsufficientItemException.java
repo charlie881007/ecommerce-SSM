@@ -1,6 +1,6 @@
 package com.yhlin.exception;
 
-public class InsufficientItemException extends CartException {
+public class InsufficientItemException extends Exception {
     public InsufficientItemException() {
     }
 
