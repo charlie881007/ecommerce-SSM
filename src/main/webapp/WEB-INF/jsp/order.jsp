@@ -25,7 +25,6 @@
     <tr>
         <th>物品</th>
         <th>單價</th>
-        <th>可購買數量</th>
         <th>數量</th>
         <th>金額</th>
     </tr>
@@ -36,13 +35,11 @@
                 <a href="${pageContext.request.contextPath}/listings/${cartDetail.listing.id}">${cartDetail.listing.item.name}</a>
             </td>
             <td>NT$${cartDetail.listing.price}</td>
-            <td>${cartDetail.listing.volume}</td>
             <td>${cartDetail.quantity}</td>
             <td>NT$${cartDetail.subtotal}</td>
         </tr>
     </c:forEach>
     <tr>
-        <td></td>
         <td></td>
         <td></td>
         <td class="total">總金額：</td>

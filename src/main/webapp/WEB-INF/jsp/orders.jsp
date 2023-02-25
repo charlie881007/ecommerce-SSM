@@ -45,11 +45,11 @@
             <td>${order.amount}</td>
             <td><fmt:formatDate value="${order.createTime}" pattern="yyyy-MM-dd HH:mm:ss"/></td>
             <td>${order.status}</td>
+            <td>
             <c:if test="${order.status == 'CREATED' or order.status == 'PREPARING'}">
-                <td>
                     <button class="cancel-btn">取消</button>
-                </td>
             </c:if>
+            </td>
         </tr>
     </c:forEach>
     </tbody>
