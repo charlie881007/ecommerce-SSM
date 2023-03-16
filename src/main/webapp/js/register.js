@@ -24,7 +24,7 @@ function validateForm() {
     if (email === "") {
         document.getElementById("email_error").innerHTML = "*Email為必填欄位";
         hasError = true;
-    } else if (validateEmailFormat(email)) {
+    } else if (!validateEmailFormat(email)) {
         document.getElementById("email_error").innerHTML = "*Email格式錯誤";
         hasError = true;
     } else {

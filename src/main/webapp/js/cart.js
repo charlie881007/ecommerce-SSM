@@ -88,7 +88,7 @@ function notifyServer(listingId, quantity) {
         data: {listingId: listingId, quantity: quantity},
         success: function (data, textStatus) {
             // 新增成功
-            return true;
+            isSuccess = true;
         },
         error: function (xhr, textStatus) {
             if (xhr.status === 400) {
@@ -117,6 +117,7 @@ $(function () {
             const price = parseFloat(row.querySelector('td:nth-of-type(2)').innerText.slice(3));
             const quantity = parseInt(input.value);
             const subtotal = row.querySelector('td:nth-of-type(5)');
+
 
             const isSuccess = notifyServer(listingId, quantity);
 

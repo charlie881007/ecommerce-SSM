@@ -14,6 +14,10 @@ $(function () {
             quantity: qtyInput.val()
         };
 
+        if (qtyInput.val() === 0 + ""){
+            return;
+        }
+
         $.ajax({
             type: "POST",
             url: contextPath + "/cart/add",
